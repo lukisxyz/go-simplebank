@@ -15,7 +15,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres14
+        image: postgres:14-alpine
         env:
           POSTGRES_PASSWORD: wap12345
           POSTGRES_USER: root
