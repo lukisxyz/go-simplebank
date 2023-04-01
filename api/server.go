@@ -13,19 +13,21 @@ import (
 )
 
 type Server struct {
-	store *db.Store
-	router *echo.Echo
+	store    db.Store
+	router   *echo.Echo
 	validate *validator.Validate
 }
 
-func NewServer(store *db.Store, validate *validator.Validate) *Server {
+func NewServer(store db.Store, validate *validator.Validate) *Server {
 	server := &Server{
-		store: store,
+		store:    store,
 		validate: validate,
 	}
 	router := echo.New()
 
 	router.POST("/account", server.createAccount)
+	router.GET("/accounts/:id", server.getAccount)
+	router.GET("/accounts", server.FetchAccount)
 
 	server.router = router
 	return server
@@ -38,7 +40,7 @@ func (s *Server) Start(addr string) {
 		}
 	}()
 
-	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds. 
+	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
 	// Use a buffered channel to avoid missing signals as recommended for signal.Notify
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
@@ -48,4 +50,9 @@ func (s *Server) Start(addr string) {
 	if err := s.router.Shutdown(ctx); err != nil {
 		s.router.Logger.Fatal(err)
 	}
-} 
+}
+
+type Meta struct {
+	Limit int32 `json:"limit"`
+	Page  int32 `json:"page"`
+}

@@ -6,19 +6,17 @@ import (
 
 	"github.com/flukis/simplebank/api"
 	db "github.com/flukis/simplebank/db/sqlc"
+	"github.com/flukis/simplebank/util"
 	"github.com/go-playground/validator/v10"
 	_ "github.com/lib/pq"
 )
 
-
-const (
-	addr = "0.0.0.0:3000"
-	dbDriver = "postgres"
-	dbSource = "postgresql://root:wap12345@127.0.0.1:5432/simplebank?sslmode=disable"
-)
-
 func main() {
-	dbConn, err := sql.Open(dbDriver, dbSource)
+	conf, err := util.LoadConfig(".")
+	if err != nil {
+		log.Fatal(err)
+	}
+	dbConn, err := sql.Open(conf.DBDriver, conf.DBSource)
 	if err != nil {
 		log.Fatal("cannot connect to db: ", err)
 	}
@@ -27,5 +25,5 @@ func main() {
 
 	store := db.NewStore(dbConn)
 	server := api.NewServer(store, v)
-	server.Start(addr)
+	server.Start(conf.ServerAddr)
 }

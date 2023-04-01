@@ -28,4 +28,7 @@ test:
 dev:
 	go run main.go
 
-.PHONY: dev create-postgres postgres createdb dropdb migrateup migratedown
+createmock:
+	mockgen --package mockdb --destination db/mock/store.go github.com/flukis/simplebank/db/sqlc Store
+
+.PHONY: createmock dev create-postgres postgres createdb dropdb migrateup migratedown

@@ -6,12 +6,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/flukis/simplebank/util"
 	_ "github.com/lib/pq"
-)
-
-const (
-	dbDriver = "postgres"
-	dbSource = "postgresql://root:wap12345@127.0.0.1:5432/simplebank?sslmode=disable"
 )
 
 var testQueries *Queries
@@ -19,7 +15,11 @@ var testDB *sql.DB
 
 func TestMain(m *testing.M) {
 	var err error
-	testDB, err = sql.Open(dbDriver, dbSource)
+	conf, err := util.LoadConfig("../..")
+	if err != nil {
+		log.Fatal(err)
+	}
+	testDB, err = sql.Open(conf.DBDriver, conf.DBSource)
 	if err != nil {
 		log.Fatal("cannot connect to db: ", err)
 	}
