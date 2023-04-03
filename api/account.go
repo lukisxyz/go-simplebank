@@ -21,16 +21,18 @@ type createAccountSuccessResponse struct {
 type createAccountRequest struct {
 	Owner    string `json:"owner" binding:"required"`
 	Currency string `json:"currency" binding:"required,oneof=USD EUR"`
+	Balance  int64  `json:"balance" binding:"requied"`
 }
 
 func (r createAccountRequest) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.Owner, validation.Required),
+		validation.Field(&r.Balance, validation.Required),
 		validation.Field(&r.Currency, validation.Required, validation.In("USD", "EUR")),
 	)
 }
 
-func (s *Server) createAccount(c echo.Context) error {
+func (s *Server) CreateAccount(c echo.Context) error {
 	req := new(createAccountRequest)
 	if err := c.Bind(req); err != nil {
 		return c.JSON(
@@ -53,7 +55,7 @@ func (s *Server) createAccount(c echo.Context) error {
 	arg := db.CreateAccountParams{
 		Owner:    req.Owner,
 		Currency: req.Currency,
-		Balance:  0,
+		Balance:  req.Balance,
 	}
 
 	account, err := s.store.CreateAccount(c.Request().Context(), arg)
@@ -82,7 +84,7 @@ type getAccountSuccessResponse struct {
 	Data db.Account `json:"data"`
 }
 
-func (s *Server) getAccount(c echo.Context) error {
+func (s *Server) GetAccount(c echo.Context) error {
 	paramId := c.Param("id")
 	id, err := strconv.ParseInt(paramId, 10, 64)
 	if err != nil {
@@ -90,6 +92,15 @@ func (s *Server) getAccount(c echo.Context) error {
 			http.StatusBadRequest,
 			&getAccountErrorResponse{
 				Error: err.Error(),
+			},
+		)
+	}
+
+	if id == 0 {
+		return c.JSON(
+			http.StatusBadRequest,
+			&getAccountErrorResponse{
+				Error: "ID cannot be 0",
 			},
 		)
 	}

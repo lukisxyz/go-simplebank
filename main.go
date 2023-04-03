@@ -7,7 +7,6 @@ import (
 	"github.com/flukis/simplebank/api"
 	db "github.com/flukis/simplebank/db/sqlc"
 	"github.com/flukis/simplebank/util"
-	"github.com/go-playground/validator/v10"
 	_ "github.com/lib/pq"
 )
 
@@ -21,9 +20,7 @@ func main() {
 		log.Fatal("cannot connect to db: ", err)
 	}
 
-	v := validator.New()
-
 	store := db.NewStore(dbConn)
-	server := api.NewServer(store, v)
+	server := api.NewServer(store)
 	server.Start(conf.ServerAddr)
 }

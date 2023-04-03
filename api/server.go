@@ -18,15 +18,16 @@ type Server struct {
 	validate *validator.Validate
 }
 
-func NewServer(store db.Store, validate *validator.Validate) *Server {
+func NewServer(store db.Store) *Server {
+	v := validator.New()
 	server := &Server{
 		store:    store,
-		validate: validate,
+		validate: v,
 	}
 	router := echo.New()
 
-	router.POST("/account", server.createAccount)
-	router.GET("/accounts/:id", server.getAccount)
+	router.POST("/accounts", server.CreateAccount)
+	router.GET("/accounts/:id", server.GetAccount)
 	router.GET("/accounts", server.FetchAccount)
 
 	server.router = router
