@@ -28,7 +28,7 @@ func (r createAccountRequest) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.Owner, validation.Required),
 		validation.Field(&r.Balance, validation.Required),
-		validation.Field(&r.Currency, validation.Required, validation.In("USD", "EUR")),
+		validation.Field(&r.Currency, validation.Required, validation.In("USD", "EUR", "IDR")),
 	)
 }
 
