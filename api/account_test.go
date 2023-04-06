@@ -393,7 +393,7 @@ func randomAccount() db.Account {
 	}
 }
 
-func requireBodyMatchAccount[V getAccountErrorResponse | fetchAccountSuccessResponse | createAccountSuccessResponse | getAccountSuccessResponse](t *testing.T, body *bytes.Buffer, res V) {
+func requireBodyMatchAccount[V getAccountErrorResponse | createTransferSuccessResponse | fetchAccountSuccessResponse | createAccountSuccessResponse | getAccountSuccessResponse](t *testing.T, body *bytes.Buffer, res V) {
 	bodyData, err := io.ReadAll(body)
 	require.NoError(t, err)
 
