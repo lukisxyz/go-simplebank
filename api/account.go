@@ -20,7 +20,7 @@ type createAccountSuccessResponse struct {
 
 type createAccountRequest struct {
 	Owner    string `json:"owner" binding:"required"`
-	Currency string `json:"currency" binding:"required,oneof=USD EUR"`
+	Currency string `json:"currency" binding:"required,oneof=USD EUR IDR"`
 	Balance  int64  `json:"balance" binding:"requied"`
 }
 
