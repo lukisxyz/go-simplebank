@@ -104,7 +104,7 @@ func (s *Server) validAccount(c echo.Context, accountId int64, currency string) 
 
 	if account.Currency != currency {
 		c.JSON(
-			http.StatusInternalServerError,
+			http.StatusBadRequest,
 			&createTransferErrorResponse{
 				Error: fmt.Sprintf("account with id %d have mismatch currency, expected %s got %s", accountId, account.Currency, currency),
 			},
