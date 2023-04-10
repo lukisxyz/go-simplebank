@@ -2,38 +2,66 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
 	db "github.com/flukis/simplebank/db/sqlc"
+	"github.com/flukis/simplebank/util"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
 
 type Server struct {
-	store    db.Store
-	router   *echo.Echo
-	validate *validator.Validate
+	store           db.Store
+	router          *echo.Echo
+	validate        *validator.Validate
+	passwordHashing util.Argon2Param
+	tokenMaker      util.TokenMaker
+	config          util.Config
 }
 
-func NewServer(store db.Store) *Server {
+func NewServer(store db.Store, cfg util.Config) (*Server, error) {
 	v := validator.New()
-	server := &Server{
-		store:    store,
-		validate: v,
+	arg := util.Argon2Param{
+		Memory:      64 * 1024,
+		Iterations:  3,
+		Parallelism: 2,
+		SaltLength:  16,
+		KeyLength:   32,
 	}
+
+	tokenMaker, err := util.NewJWTMaker(cfg.TokenSymetricKey)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create token maker: %w", err)
+	}
+
+	server := &Server{
+		store:           store,
+		validate:        v,
+		passwordHashing: arg,
+		tokenMaker:      tokenMaker,
+		config:          cfg,
+	}
+	serverRouter(server)
+	return server, nil
+}
+
+func serverRouter(server *Server) {
 	router := echo.New()
 
-	router.POST("/accounts", server.CreateAccount)
-	router.GET("/accounts/:id", server.GetAccount)
-	router.GET("/accounts", server.FetchAccount)
+	router.POST("/account", server.CreateAccount)
+	router.GET("/account/:id", server.GetAccount)
+	router.GET("/account", server.FetchAccount)
 
 	router.POST("/transfer", server.CreateTransfer)
 
+	router.POST("/user", server.CreateUser)
+	router.POST("/login", server.LoginUser)
+
 	server.router = router
-	return server
 }
 
 func (s *Server) Start(addr string) {

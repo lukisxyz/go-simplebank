@@ -1,8 +1,11 @@
 package util
 
 import (
+	"fmt"
 	"math/rand"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 var (
@@ -42,4 +45,9 @@ func GenRandomCurrency() string {
 	cr := []string{"EUR", "USD", "IDR"}
 	n := len(cr)
 	return cr[rand.Intn(n)]
+}
+
+func GenRandomEmail() string {
+	randomID := uuid.NewString()
+	return fmt.Sprintf("%s%s@gmail.com", randomID, GenRandomOwner())
 }

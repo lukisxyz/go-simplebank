@@ -1,6 +1,8 @@
 PSQL_DOCKER := postgres14
 PSQL_DBNAME := simplebank
 
+DB_URL := postgresql://root:wap12345@127.0.0.1:5432/simplebank?sslmode=disable
+
 create-postgres:
 	docker run --name postgres14 -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=wap12345 -d postgres:14-alpine
 
@@ -13,11 +15,20 @@ createdb:
 dropdb:
 	docker exec -it $(PSQL_DOCKER) dropdb $(PSQL_DBNAME)
 
+createmigrate:
+	migrate create -ext sql -dir db/migration -seq $(name)
+
 migrateup:
-	migrate -path db/migration -database "postgresql://root:wap12345@127.0.0.1:5432/simplebank?sslmode=disable" -verbose up
+	migrate -path db/migration -database ${DB_URL} -verbose up
 
 migratedown:
-	migrate -path db/migration -database "postgresql://root:wap12345@127.0.0.1:5432/simplebank?sslmode=disable" -verbose down
+	migrate -path db/migration -database ${DB_URL} -verbose down
+
+migrateup1:
+	migrate -path db/migration -database ${DB_URL} -verbose up 1
+
+migratedown1:
+	migrate -path db/migration -database ${DB_URL} -verbose down 1
 
 sqlc:
 	sqlc generate
@@ -28,7 +39,7 @@ test:
 dev:
 	go run main.go
 
-createmockgen:
-	mockgen --package mockdb --destination db/mock/store.go github.com/flukis/simplebank/db/sqlc Store
+createmock:
+	mockery --dir=db/sqlc --output=db/mock --name=Store --outpkg=mocks
 
-.PHONY: createmockgen dev create-postgres postgres createdb dropdb migrateup migratedown
+.PHONY: createmigrate migratedown1 migrateup1 createmock dev create-postgres postgres createdb dropdb migrateup migratedown
