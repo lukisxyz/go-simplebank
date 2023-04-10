@@ -16,16 +16,15 @@ import (
 )
 
 func TestTransferAPI(t *testing.T) {
+
 	fromAcc := db.Account{
 		ID:       util.GenRandomNum(1, 10000),
-		Owner:    util.GenRandomOwner(),
 		Balance:  util.GenRandomMoney(),
 		Currency: "IDR",
 	}
 
 	toAcc := db.Account{
 		ID:       util.GenRandomNum(1, 10000),
-		Owner:    util.GenRandomOwner(),
 		Balance:  util.GenRandomMoney(),
 		Currency: "IDR",
 	}
@@ -240,7 +239,10 @@ func TestTransferAPI(t *testing.T) {
 			store := &mocks.Store{}
 			ts.build(store)
 
-			server := NewServer(store)
+			conf := util.Config{}
+
+			server, err := NewServer(store, conf)
+			require.NoError(t, err)
 			rec := httptest.NewRecorder()
 
 			data, err := json.Marshal(ts.body)

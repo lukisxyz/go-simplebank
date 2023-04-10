@@ -13,6 +13,7 @@ import (
 	mocks "github.com/flukis/simplebank/db/mock"
 	db "github.com/flukis/simplebank/db/sqlc"
 	"github.com/flukis/simplebank/util"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -159,13 +160,14 @@ func TestFetchAccountAPI(t *testing.T) {
 			store := &mocks.Store{}
 			ts.build(store)
 
-			server := NewServer(store)
+			server, err := NewServer(store, util.Config{})
+			require.NoError(t, err)
 			rec := httptest.NewRecorder()
 
 			data, err := json.Marshal(ts.body)
 			require.NoError(t, err)
 
-			req, err := http.NewRequest(http.MethodGet, "/accounts", bytes.NewReader(data))
+			req, err := http.NewRequest(http.MethodGet, "/account", bytes.NewReader(data))
 			require.NoError(t, err)
 			req.Header = http.Header{
 				"Content-Type": {"application/json"},
@@ -181,9 +183,9 @@ func TestCreateAccountAPI(t *testing.T) {
 	account := randomAccount()
 
 	type falseCreateAccountRequest struct {
-		Owner    string `json:"owner" binding:"required"`
-		Currency string `json:"currency" binding:"required,oneof=USD EUR"`
-		Balance  string `json:"balance" binding:"requied"`
+		OwnerID  uuid.UUID `json:"owner_id" binding:"required"`
+		Currency string    `json:"currency" binding:"required,oneof=USD EUR"`
+		Balance  string    `json:"balance" binding:"requied"`
 	}
 
 	testCases := []struct {
@@ -195,13 +197,13 @@ func TestCreateAccountAPI(t *testing.T) {
 		{
 			name: "StatusOK",
 			body: createAccountRequest{
-				Owner:    account.Owner,
+				OwnerID:  account.OwnerID,
 				Currency: account.Currency,
 				Balance:  account.Balance,
 			},
 			build: func(store *mocks.Store) {
 				arg := db.CreateAccountParams{
-					Owner:    account.Owner,
+					OwnerID:  account.OwnerID,
 					Currency: account.Currency,
 					Balance:  account.Balance,
 				}
@@ -217,13 +219,13 @@ func TestCreateAccountAPI(t *testing.T) {
 		{
 			name: "StatusBadRequestNotValidParams",
 			body: createAccountRequest{
-				Owner:    account.Owner,
+				OwnerID:  account.OwnerID,
 				Currency: "PESO",
 				Balance:  account.Balance,
 			},
 			build: func(store *mocks.Store) {
 				arg := db.CreateAccountParams{
-					Owner:    account.Owner,
+					OwnerID:  account.OwnerID,
 					Currency: account.Currency,
 					Balance:  account.Balance,
 				}
@@ -237,13 +239,13 @@ func TestCreateAccountAPI(t *testing.T) {
 		{
 			name: "StatusBadRequestWrongParams",
 			body: falseCreateAccountRequest{
-				Owner:    account.Owner,
+				OwnerID:  account.OwnerID,
 				Currency: account.Currency,
 				Balance:  "9899",
 			},
 			build: func(store *mocks.Store) {
 				arg := db.CreateAccountParams{
-					Owner:    account.Owner,
+					OwnerID:  account.OwnerID,
 					Currency: account.Currency,
 					Balance:  account.Balance,
 				}
@@ -257,13 +259,13 @@ func TestCreateAccountAPI(t *testing.T) {
 		{
 			name: "StatusInternalServerError",
 			body: createAccountRequest{
-				Owner:    account.Owner,
+				OwnerID:  account.OwnerID,
 				Currency: account.Currency,
 				Balance:  account.Balance,
 			},
 			build: func(store *mocks.Store) {
 				arg := db.CreateAccountParams{
-					Owner:    account.Owner,
+					OwnerID:  account.OwnerID,
 					Currency: account.Currency,
 					Balance:  account.Balance,
 				}
@@ -281,13 +283,14 @@ func TestCreateAccountAPI(t *testing.T) {
 			store := &mocks.Store{}
 			ts.build(store)
 
-			server := NewServer(store)
+			server, err := NewServer(store, util.Config{})
+			require.NoError(t, err)
 			rec := httptest.NewRecorder()
 
 			data, err := json.Marshal(ts.body)
 			require.NoError(t, err)
 
-			req, err := http.NewRequest(http.MethodPost, "/accounts", bytes.NewReader(data))
+			req, err := http.NewRequest(http.MethodPost, "/account", bytes.NewReader(data))
 			require.NoError(t, err)
 			req.Header = http.Header{
 				"Content-Type": {"application/json"},
@@ -310,7 +313,7 @@ func TestGetAccountAPI(t *testing.T) {
 	}{
 		{
 			name: "StatusOK",
-			url:  fmt.Sprintf("/accounts/%d", account.ID),
+			url:  fmt.Sprintf("/account/%d", account.ID),
 			build: func(store *mocks.Store) {
 				store.On("GetAccount", mock.Anything, account.ID).
 					Return(account, nil).
@@ -323,7 +326,7 @@ func TestGetAccountAPI(t *testing.T) {
 		},
 		{
 			name: "StatusBadRequestWrongFormatID",
-			url:  fmt.Sprintf("/accounts/%s", "abcde"),
+			url:  fmt.Sprintf("/account/%s", "abcde"),
 			build: func(store *mocks.Store) {
 				store.On("GetAccount", mock.Anything, account.ID).
 					Return(db.Account{}, mock.Anything)
@@ -334,7 +337,7 @@ func TestGetAccountAPI(t *testing.T) {
 		},
 		{
 			name: "StatusBadRequestIDCannotBe0",
-			url:  fmt.Sprintf("/accounts/%d", 0),
+			url:  fmt.Sprintf("/account/%d", 0),
 			build: func(store *mocks.Store) {
 				store.On("GetAccount", mock.Anything, account.ID).
 					Return(db.Account{}, mock.Anything)
@@ -345,7 +348,7 @@ func TestGetAccountAPI(t *testing.T) {
 		},
 		{
 			name: "StatusNotFound",
-			url:  fmt.Sprintf("/accounts/%d", account.ID),
+			url:  fmt.Sprintf("/account/%d", account.ID),
 			build: func(store *mocks.Store) {
 				store.On("GetAccount", mock.Anything, account.ID).
 					Return(db.Account{}, sql.ErrNoRows)
@@ -356,7 +359,7 @@ func TestGetAccountAPI(t *testing.T) {
 		},
 		{
 			name: "StatusInternalServerError",
-			url:  fmt.Sprintf("/accounts/%d", account.ID),
+			url:  fmt.Sprintf("/account/%d", account.ID),
 			build: func(store *mocks.Store) {
 				store.On("GetAccount", mock.Anything, account.ID).
 					Return(db.Account{}, sql.ErrConnDone)
@@ -372,7 +375,8 @@ func TestGetAccountAPI(t *testing.T) {
 			store := &mocks.Store{}
 			ts.build(store)
 
-			server := NewServer(store)
+			server, err := NewServer(store, util.Config{})
+			require.NoError(t, err)
 			rec := httptest.NewRecorder()
 
 			req, err := http.NewRequest(http.MethodGet, ts.url, nil)
@@ -387,7 +391,6 @@ func TestGetAccountAPI(t *testing.T) {
 func randomAccount() db.Account {
 	return db.Account{
 		ID:       util.GenRandomNum(1, 10000),
-		Owner:    util.GenRandomOwner(),
 		Balance:  util.GenRandomMoney(),
 		Currency: util.GenRandomCurrency(),
 	}

@@ -7,7 +7,9 @@ import (
 
 	db "github.com/flukis/simplebank/db/sqlc"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lib/pq"
 )
 
 type createAccountErrorResponse struct {
@@ -19,14 +21,14 @@ type createAccountSuccessResponse struct {
 }
 
 type createAccountRequest struct {
-	Owner    string `json:"owner" binding:"required"`
-	Currency string `json:"currency" binding:"required,oneof=USD EUR IDR"`
-	Balance  int64  `json:"balance" binding:"requied"`
+	OwnerID  uuid.UUID `json:"owner_id" binding:"required"`
+	Currency string    `json:"currency" binding:"required,oneof=USD EUR IDR"`
+	Balance  int64     `json:"balance" binding:"requied"`
 }
 
 func (r createAccountRequest) Validate() error {
 	return validation.ValidateStruct(&r,
-		validation.Field(&r.Owner, validation.Required),
+		validation.Field(&r.OwnerID, validation.Required),
 		validation.Field(&r.Balance, validation.Required),
 		validation.Field(&r.Currency, validation.Required, validation.In("USD", "EUR", "IDR")),
 	)
@@ -53,13 +55,24 @@ func (s *Server) CreateAccount(c echo.Context) error {
 	}
 
 	arg := db.CreateAccountParams{
-		Owner:    req.Owner,
+		OwnerID:  req.OwnerID,
 		Currency: req.Currency,
 		Balance:  req.Balance,
 	}
 
 	account, err := s.store.CreateAccount(c.Request().Context(), arg)
 	if err != nil {
+		if pgErr, ok := err.(*pq.Error); ok {
+			switch pgErr.Code.Name() {
+			case "foreign_key_violation", "unique_violation":
+				return c.JSON(
+					http.StatusForbidden,
+					&createAccountErrorResponse{
+						Error: err.Error(),
+					},
+				)
+			}
+		}
 		return c.JSON(
 			http.StatusInternalServerError,
 			&createAccountErrorResponse{
