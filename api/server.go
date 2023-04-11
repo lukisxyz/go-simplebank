@@ -19,7 +19,7 @@ type Server struct {
 	router          *echo.Echo
 	validate        *validator.Validate
 	passwordHashing util.Argon2Param
-	tokenMaker      util.TokenMaker
+	tokenMaker      util.JWTMaker
 	config          util.Config
 }
 
@@ -42,7 +42,7 @@ func NewServer(store db.Store, cfg util.Config) (*Server, error) {
 		store:           store,
 		validate:        v,
 		passwordHashing: arg,
-		tokenMaker:      tokenMaker,
+		tokenMaker:      *tokenMaker,
 		config:          cfg,
 	}
 	serverRouter(server)
