@@ -2,7 +2,6 @@ package util
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -10,9 +9,10 @@ import (
 )
 
 var (
-	minSecretKeySize = 32
-	ErrInvalidToken  = errors.New("token is invalid")
-	ErrExpiredToken  = errors.New("token has expired")
+	minSecretKeySize   = 32
+	ErrInvalidToken    = errors.New("token is invalid")
+	ErrExpiredToken    = errors.New("token has expired")
+	ErrSecretKeyLength = errors.New("invalid key size: must be at least 32 characters")
 )
 
 type Payload struct {
@@ -44,18 +44,13 @@ func (payload *Payload) Valid() error {
 	return nil
 }
 
-type TokenMaker interface {
-	CreateToken(username string, duration time.Duration) (string, *Payload, error)
-	VerifyToken(token string) (*Payload, error)
-}
-
 type JWTMaker struct {
 	SecretKey string
 }
 
-func NewJWTMaker(secret string) (TokenMaker, error) {
+func NewJWTMaker(secret string) (*JWTMaker, error) {
 	if len(secret) < minSecretKeySize {
-		return nil, fmt.Errorf("invalid key size: must be at least %d characters", minSecretKeySize)
+		return &JWTMaker{}, ErrSecretKeyLength
 	}
 
 	return &JWTMaker{
@@ -63,7 +58,7 @@ func NewJWTMaker(secret string) (TokenMaker, error) {
 	}, nil
 }
 
-func (j JWTMaker) CreateToken(username string, duration time.Duration) (string, *Payload, error) {
+func (j *JWTMaker) CreateToken(username string, duration time.Duration) (string, *Payload, error) {
 	payload, err := NewPayload(username, duration)
 	if err != nil {
 		return "", payload, err
@@ -74,7 +69,7 @@ func (j JWTMaker) CreateToken(username string, duration time.Duration) (string, 
 	return token, payload, err
 }
 
-func (j JWTMaker) VerifyToken(token string) (*Payload, error) {
+func (j *JWTMaker) VerifyToken(token string) (*Payload, error) {
 	key := func(token *jwt.Token) (interface{}, error) {
 		_, ok := token.Method.(*jwt.SigningMethodHMAC)
 		if !ok {
