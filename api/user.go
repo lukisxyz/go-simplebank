@@ -3,7 +3,6 @@ package api
 import (
 	"database/sql"
 	"net/http"
-	"time"
 
 	db "github.com/flukis/simplebank/db/sqlc"
 	"github.com/flukis/simplebank/util"
@@ -15,12 +14,10 @@ import (
 )
 
 type UserResponse struct {
-	ID                uuid.UUID `json:"id"`
-	Username          string    `json:"username"`
-	FullName          string    `json:"full_name"`
-	Email             string    `json:"email"`
-	PasswordChangedAt time.Time `json:"password_changed_at"`
-	CreatedAt         time.Time `json:"created_at"`
+	ID       uuid.UUID `json:"id"`
+	Username string    `json:"username"`
+	FullName string    `json:"full_name"`
+	Email    string    `json:"email"`
 }
 
 type createUserSuccessResponse struct {
@@ -225,11 +222,9 @@ func (s *Server) LoginUser(c echo.Context) error {
 
 func generateUserResponse(u db.User) UserResponse {
 	return UserResponse{
-		ID:                u.ID,
-		Username:          u.Username,
-		FullName:          u.FullName,
-		Email:             u.Email,
-		PasswordChangedAt: u.PasswordChangedAt,
-		CreatedAt:         u.CreatedAt,
+		ID:       u.ID,
+		Username: u.Username,
+		FullName: u.FullName,
+		Email:    u.Email,
 	}
 }
