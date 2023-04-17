@@ -52,14 +52,17 @@ func NewServer(store db.Store, cfg util.Config) (*Server, error) {
 func serverRouter(server *Server) {
 	router := echo.New()
 
-	router.POST("/account", server.CreateAccount)
-	router.GET("/account/:id", server.GetAccount)
-	router.GET("/account", server.FetchAccount)
-
-	router.POST("/transfer", server.CreateTransfer)
-
 	router.POST("/user", server.CreateUser)
 	router.POST("/login", server.LoginUser)
+
+	accountGroup := router.Group("account", server.AuthMiddleware)
+	{
+		accountGroup.POST("/", server.CreateAccount)
+		accountGroup.GET("/:id", server.GetAccount)
+		accountGroup.GET("/", server.FetchAccount)
+
+		accountGroup.POST("/transfer", server.CreateTransfer)
+	}
 
 	server.router = router
 }

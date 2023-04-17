@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	mocks "github.com/flukis/simplebank/db/mock"
 	db "github.com/flukis/simplebank/db/sqlc"
@@ -160,7 +161,13 @@ func TestFetchAccountAPI(t *testing.T) {
 			store := &mocks.Store{}
 			ts.build(store)
 
-			server, err := NewServer(store, util.Config{})
+			dur, err := time.ParseDuration("1m")
+			require.NoError(t, err)
+
+			server, err := NewServer(store, util.Config{
+				TokenSymetricKey:    "12345678901234567890123456789012",
+				AccessTokenDuration: dur,
+			})
 			require.NoError(t, err)
 			rec := httptest.NewRecorder()
 
@@ -283,7 +290,13 @@ func TestCreateAccountAPI(t *testing.T) {
 			store := &mocks.Store{}
 			ts.build(store)
 
-			server, err := NewServer(store, util.Config{})
+			dur, err := time.ParseDuration("1m")
+			require.NoError(t, err)
+
+			server, err := NewServer(store, util.Config{
+				TokenSymetricKey:    "12345678901234567890123456789012",
+				AccessTokenDuration: dur,
+			})
 			require.NoError(t, err)
 			rec := httptest.NewRecorder()
 
@@ -375,7 +388,13 @@ func TestGetAccountAPI(t *testing.T) {
 			store := &mocks.Store{}
 			ts.build(store)
 
-			server, err := NewServer(store, util.Config{})
+			dur, err := time.ParseDuration("1m")
+			require.NoError(t, err)
+
+			server, err := NewServer(store, util.Config{
+				TokenSymetricKey:    "12345678901234567890123456789012",
+				AccessTokenDuration: dur,
+			})
 			require.NoError(t, err)
 			rec := httptest.NewRecorder()
 
@@ -396,7 +415,7 @@ func randomAccount() db.Account {
 	}
 }
 
-func requireBodyMatchAccount[V getAccountErrorResponse | createTransferSuccessResponse | fetchAccountSuccessResponse | createAccountSuccessResponse | getAccountSuccessResponse](t *testing.T, body *bytes.Buffer, res V) {
+func requireBodyMatchAccount[V createUserSuccessResponse | getAccountErrorResponse | createTransferSuccessResponse | fetchAccountSuccessResponse | createAccountSuccessResponse | getAccountSuccessResponse](t *testing.T, body *bytes.Buffer, res V) {
 	bodyData, err := io.ReadAll(body)
 	require.NoError(t, err)
 

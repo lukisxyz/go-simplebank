@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	mocks "github.com/flukis/simplebank/db/mock"
 	db "github.com/flukis/simplebank/db/sqlc"
@@ -239,9 +240,13 @@ func TestTransferAPI(t *testing.T) {
 			store := &mocks.Store{}
 			ts.build(store)
 
-			conf := util.Config{}
+			dur, err := time.ParseDuration("1m")
+			require.NoError(t, err)
 
-			server, err := NewServer(store, conf)
+			server, err := NewServer(store, util.Config{
+				TokenSymetricKey:    "12345678901234567890123456789012",
+				AccessTokenDuration: dur,
+			})
 			require.NoError(t, err)
 			rec := httptest.NewRecorder()
 
