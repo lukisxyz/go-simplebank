@@ -24,6 +24,9 @@ The API provides the following endpoints:
 - GET /api/transfers/:id: retrieve a transfer by its ID
 - GET /api/transfers: retrieve a list of all transfers
 
+# On going
+Uint test after adding JWT middleware
+
 ## Contributing
 
 Contributions are welcome! If you have any suggestions or find any bugs, please open an issue or submit a pull request.
