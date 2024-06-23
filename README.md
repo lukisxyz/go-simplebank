@@ -1,32 +1,23 @@
-This is a simple bank RESTful API built using Golang.
+## Instalasi
 
-## Installation
+1. Clone repository: `git clone https://github.com/flukis/go-simplebank.git`
+2. Masuk ke direktori: `cd go-simplebank`
+3. Instal dependensi: `go mod download`
 
-1. Clone the repository: git clone https://github.com/flukis/go-simplebank.git
-2. Navigate into the directory: cd go-simplebank
-3. Install dependencies: go mod download
+## Penggunaan
 
-## Usage
+1. Jalankan server: `make dev`
+2. Gunakan klien RESTful API (seperti Postman) untuk berinteraksi dengan endpoint API.
 
-1. Start the server: make dev
-2. Use a RESTful API client (such as Postman) to interact with the API endpoints.
+## Endpoint API
 
-## API Endpoints
+API menyediakan endpoint berikut:
 
-The API provides the following endpoints:
-
-- POST /api/auth/signup: create a new user account
-- POST /api/auth/login: authenticate and login a user
-- GET /api/accounts/:id: retrieve an account by its ID
-- POST /api/accounts: create a new account
-- GET /api/accounts: retrieve a list of all accounts
-- POST /api/transfers: create a new transfer between two accounts
-- GET /api/transfers/:id: retrieve a transfer by its ID
-- GET /api/transfers: retrieve a list of all transfers
-
-# On going
-Uint test after adding JWT middleware
-
-## Contributing
-
-Contributions are welcome! If you have any suggestions or find any bugs, please open an issue or submit a pull request.
+- **POST /api/auth/signup:** Membuat akun pengguna baru
+- **POST /api/auth/login:** Mengotentikasi dan masuk sebagai pengguna
+- **GET /api/accounts/:id:** Mendapatkan detail akun berdasarkan ID
+- **POST /api/accounts:** Membuat akun baru
+- **GET /api/accounts:** Mendapatkan daftar semua akun
+- **POST /api/transfers:** Membuat transfer baru antara dua akun
+- **GET /api/transfers/:id:** Mendapatkan detail transfer berdasarkan ID
+- **GET /api/transfers:** Mendapatkan daftar semua transfer
